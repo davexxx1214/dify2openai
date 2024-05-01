@@ -89,11 +89,16 @@ app.post("/v1/chat/completions", async (req, res) => {
     const messages = data.messages;
     let queryString;
     if (botType === 'Chat') {
-      const lastMessage = messages[messages.length - 1];
-      queryString = `here is our talk history:\n'''\n${messages
-        .slice(0, -1) 
-        .map((message) => `${message.role}: ${message.content}`)
-        .join('\n')}\n'''\n\nhere is my question:\n${lastMessage.content}`;
+      // 确保至少有两条消息
+      if (messages.length >= 2) {
+        const previousMessage = messages[messages.length - 2];
+        const lastMessage = messages[messages.length - 1];
+        queryString = `here is the previous conversation:\n${previousMessage.role}: ${previousMessage.content}\n\nhere is my question:\n${lastMessage.content}`;
+      } else if (messages.length === 1) {
+        // 如果只有一条消息，则没有上一次对话
+        const lastMessage = messages[0];
+        queryString = `here is my question:\n${lastMessage.content}`;
+      }
     } else if (botType === 'Completion' || botType === 'Workflow') {
       queryString = messages[messages.length - 1].content;
     }
